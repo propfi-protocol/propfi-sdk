@@ -13,7 +13,7 @@ export class MortgagePoolClient extends SorobanClient {
     propertyReg: string,
     oracle: string,
     signer: SorobanSigner,
-    options?: TxOptions,
+    options?: TxOptions
   ): Promise<string> {
     return this.signAndSend(
       'initialize',
@@ -24,7 +24,7 @@ export class MortgagePoolClient extends SorobanClient {
         nativeToScVal(oracle, { type: 'address' }),
       ],
       signer,
-      options,
+      options
     );
   }
 
@@ -33,7 +33,7 @@ export class MortgagePoolClient extends SorobanClient {
     propId: number,
     amount: bigint,
     signer: SorobanSigner,
-    options?: TxOptions,
+    options?: TxOptions
   ): Promise<string> {
     return this.signAndSend(
       'open_loan',
@@ -43,7 +43,7 @@ export class MortgagePoolClient extends SorobanClient {
         nativeToScVal(amount, { type: 'i128' }),
       ],
       signer,
-      options,
+      options
     );
   }
 
@@ -52,7 +52,7 @@ export class MortgagePoolClient extends SorobanClient {
     loanId: number,
     amount: bigint,
     signer: SorobanSigner,
-    options?: TxOptions,
+    options?: TxOptions
   ): Promise<string> {
     return this.signAndSend(
       'repay',
@@ -62,7 +62,7 @@ export class MortgagePoolClient extends SorobanClient {
         nativeToScVal(amount, { type: 'i128' }),
       ],
       signer,
-      options,
+      options
     );
   }
 
@@ -70,16 +70,13 @@ export class MortgagePoolClient extends SorobanClient {
     liquidator: string,
     loanId: number,
     signer: SorobanSigner,
-    options?: TxOptions,
+    options?: TxOptions
   ): Promise<string> {
     return this.signAndSend(
       'liquidate',
-      [
-        nativeToScVal(liquidator, { type: 'address' }),
-        nativeToScVal(loanId, { type: 'u64' }),
-      ],
+      [nativeToScVal(liquidator, { type: 'address' }), nativeToScVal(loanId, { type: 'u64' })],
       signer,
-      options,
+      options
     );
   }
 
@@ -87,16 +84,13 @@ export class MortgagePoolClient extends SorobanClient {
     lp: string,
     amount: bigint,
     signer: SorobanSigner,
-    options?: TxOptions,
+    options?: TxOptions
   ): Promise<string> {
     return this.signAndSend(
       'deposit_liquidity',
-      [
-        nativeToScVal(lp, { type: 'address' }),
-        nativeToScVal(amount, { type: 'i128' }),
-      ],
+      [nativeToScVal(lp, { type: 'address' }), nativeToScVal(amount, { type: 'i128' })],
       signer,
-      options,
+      options
     );
   }
 
@@ -104,23 +98,18 @@ export class MortgagePoolClient extends SorobanClient {
     lp: string,
     amount: bigint,
     signer: SorobanSigner,
-    options?: TxOptions,
+    options?: TxOptions
   ): Promise<string> {
     return this.signAndSend(
       'withdraw_liquidity',
-      [
-        nativeToScVal(lp, { type: 'address' }),
-        nativeToScVal(amount, { type: 'i128' }),
-      ],
+      [nativeToScVal(lp, { type: 'address' }), nativeToScVal(amount, { type: 'i128' })],
       signer,
-      options,
+      options
     );
   }
 
   async loanHealth(loanId: number): Promise<HealthFactor> {
-    const result = await this.simulateView('loan_health', [
-      nativeToScVal(loanId, { type: 'u64' }),
-    ]);
+    const result = await this.simulateView('loan_health', [nativeToScVal(loanId, { type: 'u64' })]);
     return result as HealthFactor;
   }
 }

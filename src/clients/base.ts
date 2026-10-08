@@ -29,13 +29,10 @@ export class SorobanClient {
   }
 
   async simulateView(method: string, params: xdr.ScVal[]): Promise<any> {
-    const tx = new TransactionBuilder(
-      new Account(SorobanClient.DUMMY_ADDRESS, '0'),
-      {
-        fee: '100',
-        networkPassphrase: this.networkPassphrase,
-      },
-    )
+    const tx = new TransactionBuilder(new Account(SorobanClient.DUMMY_ADDRESS, '0'), {
+      fee: '100',
+      networkPassphrase: this.networkPassphrase,
+    })
       .addOperation(this.contract.call(method, ...params))
       .setTimeout(30)
       .build();
@@ -57,7 +54,7 @@ export class SorobanClient {
     method: string,
     params: xdr.ScVal[],
     source: string,
-    options?: TxOptions,
+    options?: TxOptions
   ): Promise<Transaction> {
     const account = await this.server.getAccount(source);
     const tx = new TransactionBuilder(account, {
@@ -75,7 +72,7 @@ export class SorobanClient {
     method: string,
     params: xdr.ScVal[],
     signer: SorobanSigner,
-    options?: TxOptions,
+    options?: TxOptions
   ): Promise<string> {
     const source = await signer.getPublicKey();
     const prepared = await this.prepareTransaction(method, params, source, options);
@@ -85,7 +82,9 @@ export class SorobanClient {
     const resp = await this.server.sendTransaction(signedTx);
 
     if (resp.status === 'ERROR') {
-      throw new Error(`Transaction error: ${resp.errorResult ? resp.errorResult.toXDR('base64') : 'unknown'}`);
+      throw new Error(
+        `Transaction error: ${resp.errorResult ? resp.errorResult.toXDR('base64') : 'unknown'}`
+      );
     }
 
     return resp.hash;

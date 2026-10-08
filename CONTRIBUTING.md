@@ -139,6 +139,7 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 Types: `feat`, `fix`, `refactor`, `test`, `docs`, `style`, `chore`, `ci`.
 
 Examples:
+
 ```
 feat(property-registry): add valuation update with oracle verification
 fix(fraction-vault): prevent overflow in buy_fraction calculation
@@ -168,6 +169,7 @@ When your contract calls another PropFi contract:
 ### Event naming
 
 Events should follow the pattern `VerbPastTense`:
+
 - `PropertyRegistered`, `FractionPurchased`, `YieldDistributed`, `LoanOpened`.
 
 Each event payload must contain the affected address or ID as the first key for easy indexing.

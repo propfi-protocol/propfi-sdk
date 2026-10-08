@@ -44,15 +44,19 @@ import { Keypair } from '@stellar/stellar-sdk';
 
 const keypair = Keypair.fromSecret('S...');
 const signer = {
-  async getPublicKey() { return keypair.publicKey(); },
-  async signTransaction(txXdr: string) { return keypair.sign(txXdr); },
+  async getPublicKey() {
+    return keypair.publicKey();
+  },
+  async signTransaction(txXdr: string) {
+    return keypair.sign(txXdr);
+  },
 };
 
 const txHash = await propfi.fractionVault.buyFraction(
-  'G...',   // buyer
-  1,         // prop_id
-  10n,       // amount
-  signer,
+  'G...', // buyer
+  1, // prop_id
+  10n, // amount
+  signer
 );
 ```
 
@@ -98,12 +102,12 @@ console.log({ property, fractionInfo, balance, health });
 
 ## Clients
 
-| Client | Contract | Key Methods |
-|--------|----------|-------------|
-| `ComplianceRegistryClient` | KYC/AML attestation | `attest`, `isCompliant`, `revoke` |
-| `PropertyRegistryClient` | Property tokenization | `registerProperty`, `getProperty`, `transferOwnership` |
-| `FractionVaultClient` | Fractional ownership | `buyFraction`, `sellFraction`, `getBalance` |
-| `MortgagePoolClient` | On-chain mortgages | `openLoan`, `repay`, `loanHealth` |
+| Client                     | Contract              | Key Methods                                            |
+| -------------------------- | --------------------- | ------------------------------------------------------ |
+| `ComplianceRegistryClient` | KYC/AML attestation   | `attest`, `isCompliant`, `revoke`                      |
+| `PropertyRegistryClient`   | Property tokenization | `registerProperty`, `getProperty`, `transferOwnership` |
+| `FractionVaultClient`      | Fractional ownership  | `buyFraction`, `sellFraction`, `getBalance`            |
+| `MortgagePoolClient`       | On-chain mortgages    | `openLoan`, `repay`, `loanHealth`                      |
 
 ## Types
 

@@ -8,7 +8,12 @@ export class FractionVaultClient extends SorobanClient {
   }
 
   async initialize(admin: string, signer: SorobanSigner, options?: TxOptions): Promise<string> {
-    return this.signAndSend('initialize', [nativeToScVal(admin, { type: 'address' })], signer, options);
+    return this.signAndSend(
+      'initialize',
+      [nativeToScVal(admin, { type: 'address' })],
+      signer,
+      options
+    );
   }
 
   async fractionalize(
@@ -19,7 +24,7 @@ export class FractionVaultClient extends SorobanClient {
     propertyRegistry: string,
     complianceRegistry: string,
     signer: SorobanSigner,
-    options?: TxOptions,
+    options?: TxOptions
   ): Promise<string> {
     return this.signAndSend(
       'fractionalize',
@@ -32,7 +37,7 @@ export class FractionVaultClient extends SorobanClient {
         nativeToScVal(complianceRegistry, { type: 'address' }),
       ],
       signer,
-      options,
+      options
     );
   }
 
@@ -41,7 +46,7 @@ export class FractionVaultClient extends SorobanClient {
     propId: number,
     amount: bigint,
     signer: SorobanSigner,
-    options?: TxOptions,
+    options?: TxOptions
   ): Promise<string> {
     return this.signAndSend(
       'buy_fraction',
@@ -51,7 +56,7 @@ export class FractionVaultClient extends SorobanClient {
         nativeToScVal(amount, { type: 'u128' }),
       ],
       signer,
-      options,
+      options
     );
   }
 
@@ -61,7 +66,7 @@ export class FractionVaultClient extends SorobanClient {
     amount: bigint,
     minPrice: bigint,
     signer: SorobanSigner,
-    options?: TxOptions,
+    options?: TxOptions
   ): Promise<string> {
     return this.signAndSend(
       'sell_fraction',
@@ -72,7 +77,7 @@ export class FractionVaultClient extends SorobanClient {
         nativeToScVal(minPrice, { type: 'i128' }),
       ],
       signer,
-      options,
+      options
     );
   }
 
@@ -108,13 +113,13 @@ export class FractionVaultClient extends SorobanClient {
   async setRentDistributor(
     distributor: string,
     signer: SorobanSigner,
-    options?: TxOptions,
+    options?: TxOptions
   ): Promise<string> {
     return this.signAndSend(
       'set_rent_distributor',
       [nativeToScVal(distributor, { type: 'address' })],
       signer,
-      options,
+      options
     );
   }
 }

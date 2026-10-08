@@ -8,7 +8,12 @@ export class PropertyRegistryClient extends SorobanClient {
   }
 
   async initialize(admin: string, signer: SorobanSigner, options?: TxOptions): Promise<string> {
-    return this.signAndSend('initialize', [nativeToScVal(admin, { type: 'address' })], signer, options);
+    return this.signAndSend(
+      'initialize',
+      [nativeToScVal(admin, { type: 'address' })],
+      signer,
+      options
+    );
   }
 
   async registerProperty(
@@ -17,7 +22,7 @@ export class PropertyRegistryClient extends SorobanClient {
     docHash: string,
     jurisdiction: string,
     signer: SorobanSigner,
-    options?: TxOptions,
+    options?: TxOptions
   ): Promise<string> {
     return this.signAndSend(
       'register_property',
@@ -28,7 +33,7 @@ export class PropertyRegistryClient extends SorobanClient {
         nativeToScVal(jurisdiction, { type: 'symbol' }),
       ],
       signer,
-      options,
+      options
     );
   }
 
@@ -38,7 +43,7 @@ export class PropertyRegistryClient extends SorobanClient {
     oracleContract: string,
     asset: string,
     signer: SorobanSigner,
-    options?: TxOptions,
+    options?: TxOptions
   ): Promise<string> {
     return this.signAndSend(
       'update_valuation',
@@ -49,7 +54,7 @@ export class PropertyRegistryClient extends SorobanClient {
         nativeToScVal(asset, { type: 'symbol' }),
       ],
       signer,
-      options,
+      options
     );
   }
 
@@ -58,7 +63,7 @@ export class PropertyRegistryClient extends SorobanClient {
     to: string,
     complianceContract: string,
     signer: SorobanSigner,
-    options?: TxOptions,
+    options?: TxOptions
   ): Promise<string> {
     return this.signAndSend(
       'transfer_ownership',
@@ -68,7 +73,7 @@ export class PropertyRegistryClient extends SorobanClient {
         nativeToScVal(complianceContract, { type: 'address' }),
       ],
       signer,
-      options,
+      options
     );
   }
 
@@ -83,16 +88,13 @@ export class PropertyRegistryClient extends SorobanClient {
     propId: number,
     status: PropertyStatus,
     signer: SorobanSigner,
-    options?: TxOptions,
+    options?: TxOptions
   ): Promise<string> {
     return this.signAndSend(
       'set_status',
-      [
-        nativeToScVal(propId, { type: 'u64' }),
-        nativeToScVal(status, { type: 'symbol' }),
-      ],
+      [nativeToScVal(propId, { type: 'u64' }), nativeToScVal(status, { type: 'symbol' })],
       signer,
-      options,
+      options
     );
   }
 

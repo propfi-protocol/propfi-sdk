@@ -8,7 +8,12 @@ export class ComplianceRegistryClient extends SorobanClient {
   }
 
   async initialize(admin: string, signer: SorobanSigner, options?: TxOptions): Promise<string> {
-    return this.signAndSend('initialize', [nativeToScVal(admin, { type: 'address' })], signer, options);
+    return this.signAndSend(
+      'initialize',
+      [nativeToScVal(admin, { type: 'address' })],
+      signer,
+      options
+    );
   }
 
   async attest(
@@ -17,7 +22,7 @@ export class ComplianceRegistryClient extends SorobanClient {
     jurisdiction: string,
     durationDays: number,
     signer: SorobanSigner,
-    options?: TxOptions,
+    options?: TxOptions
   ): Promise<string> {
     return this.signAndSend(
       'attest',
@@ -28,7 +33,7 @@ export class ComplianceRegistryClient extends SorobanClient {
         nativeToScVal(durationDays, { type: 'u64' }),
       ],
       signer,
-      options,
+      options
     );
   }
 
@@ -48,7 +53,7 @@ export class ComplianceRegistryClient extends SorobanClient {
     jurisdiction: string,
     rules: JurisdictionRules,
     signer: SorobanSigner,
-    options?: TxOptions,
+    options?: TxOptions
   ): Promise<string> {
     return this.signAndSend(
       'set_jurisdiction_rules',
@@ -60,7 +65,7 @@ export class ComplianceRegistryClient extends SorobanClient {
         }),
       ],
       signer,
-      options,
+      options
     );
   }
 
