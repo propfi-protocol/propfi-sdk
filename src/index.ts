@@ -1,6 +1,7 @@
 export * from './types';
 export * from './errors';
 export * from './utils/simulation';
+export * from './utils/events';
 export {
   SorobanClient,
   ComplianceRegistryClient,
