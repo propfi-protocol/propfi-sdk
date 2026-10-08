@@ -37,7 +37,10 @@ describe('createPropFi', () => {
   it('should pass rpcUrl and contract IDs to each client', () => {
     createPropFi(config);
 
-    expect(ComplianceRegistryClient).toHaveBeenCalledWith(config.rpcUrl, config.complianceRegistryId);
+    expect(ComplianceRegistryClient).toHaveBeenCalledWith(
+      config.rpcUrl,
+      config.complianceRegistryId
+    );
     expect(PropertyRegistryClient).toHaveBeenCalledWith(config.rpcUrl, config.propertyRegistryId);
     expect(FractionVaultClient).toHaveBeenCalledWith(config.rpcUrl, config.fractionVaultId);
     expect(MortgagePoolClient).toHaveBeenCalledWith(config.rpcUrl, config.mortgagePoolId);

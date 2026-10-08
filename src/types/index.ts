@@ -1,5 +1,3 @@
-import { Address, Contract, xdr, nativeToScVal, scValToNative } from '@stellar/stellar-sdk';
-
 export enum PropertyStatus {
   Active = 'Active',
   Inactive = 'Inactive',

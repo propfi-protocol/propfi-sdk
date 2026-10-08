@@ -10,14 +10,15 @@ const __dirname = path.dirname(__filename);
 
 export default tseslint.config(
   {
+    ignores: ['dist/', 'node_modules/', '*.config.js', '*.config.ts', 'eslint.config.mjs'],
+  },
+  {
+    files: ['src/**/*.ts'],
     ...js.configs.recommended,
     rules: {
       ...js.configs.recommended.rules,
       'no-unused-expressions': 'off',
     },
-  },
-  {
-    ignores: ['dist/', 'node_modules/', '*.config.js', '*.config.ts', 'eslint.config.mjs'],
     plugins: {
       '@typescript-eslint': (await import('@typescript-eslint/eslint-plugin')).default,
       prettier,

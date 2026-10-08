@@ -1,4 +1,4 @@
-import { beforeEach, vi } from 'vitest';
+import { vi } from 'vitest';
 
 const mockServer = {
   simulateTransaction: vi.fn(),
@@ -19,13 +19,15 @@ const MockTransactionBuilder = vi.fn().mockImplementation(() => ({
   toXDR: vi.fn().mockReturnValue('mock-xdr'),
 }));
 
-MockTransactionBuilder.fromXDR = vi.fn();
-MockTransactionBuilder.prototype = {
-  addOperation: vi.fn().mockReturnThis(),
-  setTimeout: vi.fn().mockReturnThis(),
-  build: vi.fn().mockReturnThis(),
-  toXDR: vi.fn().mockReturnValue('mock-xdr'),
-};
+Object.assign(MockTransactionBuilder, {
+  fromXDR: vi.fn(),
+  prototype: {
+    addOperation: vi.fn().mockReturnThis(),
+    setTimeout: vi.fn().mockReturnThis(),
+    build: vi.fn().mockReturnThis(),
+    toXDR: vi.fn().mockReturnValue('mock-xdr'),
+  },
+});
 
 vi.mock('@stellar/stellar-sdk', () => ({
   SorobanRpc: {
