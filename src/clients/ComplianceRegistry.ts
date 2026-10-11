@@ -1,6 +1,12 @@
 import { nativeToScVal } from '@stellar/stellar-sdk';
 import { SorobanClient, type SorobanSigner } from './base';
 import type { JurisdictionRules, TxOptions } from '../types';
+import {
+  validateAccountId,
+  validateRequired,
+  validateNumberRange,
+  assertValid,
+} from '../utils/validation';
 
 export class ComplianceRegistryClient extends SorobanClient {
   constructor(rpcUrl: string, contractId: string) {
@@ -8,6 +14,8 @@ export class ComplianceRegistryClient extends SorobanClient {
   }
 
   async initialize(admin: string, signer: SorobanSigner, options?: TxOptions): Promise<string> {
+    assertValid(validateRequired(admin, 'admin'));
+    assertValid(validateAccountId(admin, 'admin'));
     return this.signAndSend(
       'initialize',
       [nativeToScVal(admin, { type: 'address' })],
@@ -24,6 +32,12 @@ export class ComplianceRegistryClient extends SorobanClient {
     signer: SorobanSigner,
     options?: TxOptions
   ): Promise<string> {
+    assertValid(validateRequired(user, 'user'));
+    assertValid(validateAccountId(user, 'user'));
+    assertValid(validateRequired(proofHash, 'proofHash'));
+    assertValid(validateRequired(jurisdiction, 'jurisdiction'));
+    assertValid(validateRequired(durationDays, 'durationDays'));
+    assertValid(validateNumberRange(durationDays, 1, 3650, 'durationDays'));
     return this.signAndSend(
       'attest',
       [
@@ -38,6 +52,9 @@ export class ComplianceRegistryClient extends SorobanClient {
   }
 
   async isCompliant(user: string, jurisdiction: string): Promise<boolean> {
+    assertValid(validateRequired(user, 'user'));
+    assertValid(validateAccountId(user, 'user'));
+    assertValid(validateRequired(jurisdiction, 'jurisdiction'));
     const result = await this.simulateView('is_compliant', [
       nativeToScVal(user, { type: 'address' }),
       nativeToScVal(jurisdiction, { type: 'symbol' }),
@@ -46,6 +63,8 @@ export class ComplianceRegistryClient extends SorobanClient {
   }
 
   async revoke(user: string, signer: SorobanSigner, options?: TxOptions): Promise<string> {
+    assertValid(validateRequired(user, 'user'));
+    assertValid(validateAccountId(user, 'user'));
     return this.signAndSend('revoke', [nativeToScVal(user, { type: 'address' })], signer, options);
   }
 
@@ -55,6 +74,12 @@ export class ComplianceRegistryClient extends SorobanClient {
     signer: SorobanSigner,
     options?: TxOptions
   ): Promise<string> {
+    assertValid(validateRequired(jurisdiction, 'jurisdiction'));
+    assertValid(validateRequired(rules, 'rules'));
+    assertValid(validateRequired(rules.min_attestation_days, 'min_attestation_days'));
+    assertValid(validateNumberRange(rules.min_attestation_days, 1, 3650, 'min_attestation_days'));
+    assertValid(validateRequired(rules.required_level, 'required_level'));
+    assertValid(validateNumberRange(rules.required_level, 1, 5, 'required_level'));
     return this.signAndSend(
       'set_jurisdiction_rules',
       [
@@ -70,6 +95,8 @@ export class ComplianceRegistryClient extends SorobanClient {
   }
 
   async attestationExpiry(user: string): Promise<bigint> {
+    assertValid(validateRequired(user, 'user'));
+    assertValid(validateAccountId(user, 'user'));
     const result = await this.simulateView('attestation_expiry', [
       nativeToScVal(user, { type: 'address' }),
     ]);

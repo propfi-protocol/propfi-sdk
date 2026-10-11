@@ -1,6 +1,13 @@
 import { nativeToScVal } from '@stellar/stellar-sdk';
 import { SorobanClient, type SorobanSigner } from './base';
 import type { FractionInfo, TxOptions } from '../types';
+import {
+  validateAccountId,
+  validateContractId,
+  validatePositiveBigInt,
+  validateRequired,
+  assertValid,
+} from '../utils/validation';
 
 export class FractionVaultClient extends SorobanClient {
   constructor(rpcUrl: string, contractId: string) {
@@ -8,6 +15,8 @@ export class FractionVaultClient extends SorobanClient {
   }
 
   async initialize(admin: string, signer: SorobanSigner, options?: TxOptions): Promise<string> {
+    assertValid(validateRequired(admin, 'admin'));
+    assertValid(validateAccountId(admin, 'admin'));
     return this.signAndSend(
       'initialize',
       [nativeToScVal(admin, { type: 'address' })],
@@ -26,6 +35,17 @@ export class FractionVaultClient extends SorobanClient {
     signer: SorobanSigner,
     options?: TxOptions
   ): Promise<string> {
+    assertValid(validateRequired(propId, 'propId'));
+    assertValid(validateRequired(totalSupply, 'totalSupply'));
+    assertValid(validatePositiveBigInt(totalSupply, 'totalSupply'));
+    assertValid(validateRequired(price, 'price'));
+    assertValid(validatePositiveBigInt(price, 'price'));
+    assertValid(validateRequired(paymentToken, 'paymentToken'));
+    assertValid(validateContractId(paymentToken, 'paymentToken'));
+    assertValid(validateRequired(propertyRegistry, 'propertyRegistry'));
+    assertValid(validateContractId(propertyRegistry, 'propertyRegistry'));
+    assertValid(validateRequired(complianceRegistry, 'complianceRegistry'));
+    assertValid(validateContractId(complianceRegistry, 'complianceRegistry'));
     return this.signAndSend(
       'fractionalize',
       [
@@ -48,6 +68,11 @@ export class FractionVaultClient extends SorobanClient {
     signer: SorobanSigner,
     options?: TxOptions
   ): Promise<string> {
+    assertValid(validateRequired(buyer, 'buyer'));
+    assertValid(validateAccountId(buyer, 'buyer'));
+    assertValid(validateRequired(propId, 'propId'));
+    assertValid(validateRequired(amount, 'amount'));
+    assertValid(validatePositiveBigInt(amount, 'amount'));
     return this.signAndSend(
       'buy_fraction',
       [
@@ -68,6 +93,13 @@ export class FractionVaultClient extends SorobanClient {
     signer: SorobanSigner,
     options?: TxOptions
   ): Promise<string> {
+    assertValid(validateRequired(seller, 'seller'));
+    assertValid(validateAccountId(seller, 'seller'));
+    assertValid(validateRequired(propId, 'propId'));
+    assertValid(validateRequired(amount, 'amount'));
+    assertValid(validatePositiveBigInt(amount, 'amount'));
+    assertValid(validateRequired(minPrice, 'minPrice'));
+    assertValid(validatePositiveBigInt(minPrice, 'minPrice'));
     return this.signAndSend(
       'sell_fraction',
       [
@@ -82,6 +114,9 @@ export class FractionVaultClient extends SorobanClient {
   }
 
   async getBalance(investor: string, propId: number): Promise<bigint> {
+    assertValid(validateRequired(investor, 'investor'));
+    assertValid(validateAccountId(investor, 'investor'));
+    assertValid(validateRequired(propId, 'propId'));
     const result = await this.simulateView('get_balance', [
       nativeToScVal(investor, { type: 'address' }),
       nativeToScVal(propId, { type: 'u64' }),
@@ -90,6 +125,7 @@ export class FractionVaultClient extends SorobanClient {
   }
 
   async totalHolders(propId: number): Promise<number> {
+    assertValid(validateRequired(propId, 'propId'));
     const result = await this.simulateView('total_holders', [
       nativeToScVal(propId, { type: 'u64' }),
     ]);
@@ -97,6 +133,7 @@ export class FractionVaultClient extends SorobanClient {
   }
 
   async getFractionInfo(propId: number): Promise<FractionInfo> {
+    assertValid(validateRequired(propId, 'propId'));
     const result = await this.simulateView('get_fraction_info', [
       nativeToScVal(propId, { type: 'u64' }),
     ]);
@@ -115,6 +152,8 @@ export class FractionVaultClient extends SorobanClient {
     signer: SorobanSigner,
     options?: TxOptions
   ): Promise<string> {
+    assertValid(validateRequired(distributor, 'distributor'));
+    assertValid(validateAccountId(distributor, 'distributor'));
     return this.signAndSend(
       'set_rent_distributor',
       [nativeToScVal(distributor, { type: 'address' })],

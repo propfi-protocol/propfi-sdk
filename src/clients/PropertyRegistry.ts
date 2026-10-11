@@ -1,6 +1,13 @@
 import { nativeToScVal } from '@stellar/stellar-sdk';
 import { SorobanClient, type SorobanSigner } from './base';
 import type { PropertyData, PropertyStatus, TxOptions } from '../types';
+import {
+  validateAccountId,
+  validateContractId,
+  validatePositiveBigInt,
+  validateRequired,
+  assertValid,
+} from '../utils/validation';
 
 export class PropertyRegistryClient extends SorobanClient {
   constructor(rpcUrl: string, contractId: string) {
@@ -8,6 +15,8 @@ export class PropertyRegistryClient extends SorobanClient {
   }
 
   async initialize(admin: string, signer: SorobanSigner, options?: TxOptions): Promise<string> {
+    assertValid(validateRequired(admin, 'admin'));
+    assertValid(validateAccountId(admin, 'admin'));
     return this.signAndSend(
       'initialize',
       [nativeToScVal(admin, { type: 'address' })],
@@ -24,6 +33,12 @@ export class PropertyRegistryClient extends SorobanClient {
     signer: SorobanSigner,
     options?: TxOptions
   ): Promise<string> {
+    assertValid(validateRequired(owner, 'owner'));
+    assertValid(validateAccountId(owner, 'owner'));
+    assertValid(validateRequired(valuation, 'valuation'));
+    assertValid(validatePositiveBigInt(valuation, 'valuation'));
+    assertValid(validateRequired(docHash, 'docHash'));
+    assertValid(validateRequired(jurisdiction, 'jurisdiction'));
     return this.signAndSend(
       'register_property',
       [
@@ -45,6 +60,12 @@ export class PropertyRegistryClient extends SorobanClient {
     signer: SorobanSigner,
     options?: TxOptions
   ): Promise<string> {
+    assertValid(validateRequired(propId, 'propId'));
+    assertValid(validateRequired(newVal, 'newVal'));
+    assertValid(validatePositiveBigInt(newVal, 'newVal'));
+    assertValid(validateRequired(oracleContract, 'oracleContract'));
+    assertValid(validateContractId(oracleContract, 'oracleContract'));
+    assertValid(validateRequired(asset, 'asset'));
     return this.signAndSend(
       'update_valuation',
       [
@@ -65,6 +86,11 @@ export class PropertyRegistryClient extends SorobanClient {
     signer: SorobanSigner,
     options?: TxOptions
   ): Promise<string> {
+    assertValid(validateRequired(propId, 'propId'));
+    assertValid(validateRequired(to, 'to'));
+    assertValid(validateAccountId(to, 'to'));
+    assertValid(validateRequired(complianceContract, 'complianceContract'));
+    assertValid(validateContractId(complianceContract, 'complianceContract'));
     return this.signAndSend(
       'transfer_ownership',
       [
@@ -78,6 +104,7 @@ export class PropertyRegistryClient extends SorobanClient {
   }
 
   async getProperty(propId: number): Promise<PropertyData> {
+    assertValid(validateRequired(propId, 'propId'));
     const result = await this.simulateView('get_property', [
       nativeToScVal(propId, { type: 'u64' }),
     ]);
@@ -90,6 +117,8 @@ export class PropertyRegistryClient extends SorobanClient {
     signer: SorobanSigner,
     options?: TxOptions
   ): Promise<string> {
+    assertValid(validateRequired(propId, 'propId'));
+    assertValid(validateRequired(status, 'status'));
     return this.signAndSend(
       'set_status',
       [nativeToScVal(propId, { type: 'u64' }), nativeToScVal(status, { type: 'symbol' })],
@@ -99,6 +128,7 @@ export class PropertyRegistryClient extends SorobanClient {
   }
 
   async getPropertyJurisdiction(propId: number): Promise<string> {
+    assertValid(validateRequired(propId, 'propId'));
     const result = await this.simulateView('get_property_jurisdiction', [
       nativeToScVal(propId, { type: 'u64' }),
     ]);
