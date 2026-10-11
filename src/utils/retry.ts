@@ -13,7 +13,7 @@ export interface RetryOptions {
 export interface RetryResult<T> {
   success: boolean;
   value?: T;
-  error?: Error;
+  error: Error | undefined;
   attempts: number;
 }
 
@@ -60,7 +60,7 @@ export async function withRetry<T>(
   for (let attempt = 0; attempt <= opts.maxRetries; attempt++) {
     try {
       const value = await operation();
-      return { success: true, value, attempts: attempt + 1 };
+      return { success: true, value, error: undefined, attempts: attempt + 1 };
     } catch (error) {
       lastError = error as Error;
 

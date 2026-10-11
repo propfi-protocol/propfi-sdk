@@ -23,7 +23,7 @@ vi.mock('@stellar/stellar-sdk', async () => {
       }
       return val;
     }),
-    xdr: actual.xdr,
+    xdr: actual['xdr'],
   };
 });
 
@@ -77,8 +77,8 @@ describe('Event Utilities', () => {
       const parsed = parseContractEvents(events);
 
       expect(parsed).toHaveLength(2);
-      expect(parsed[0].topics[0]).toBe('PropertyRegistered');
-      expect(parsed[1].topics[0]).toBe('FractionPurchased');
+      expect(parsed[0]?.topics[0]).toBe('PropertyRegistered');
+      expect(parsed[1]?.topics[0]).toBe('FractionPurchased');
     });
   });
 

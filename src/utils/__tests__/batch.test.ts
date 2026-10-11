@@ -20,9 +20,10 @@ describe('BatchTransactionBuilder', () => {
       builder.addOperation('CABC...', 'method1', mockParams);
 
       expect(builder.getOperationCount()).toBe(1);
-      expect(builder.getOperations()).toHaveLength(1);
-      expect(builder.getOperations()[0].contractId).toBe('CABC...');
-      expect(builder.getOperations()[0].method).toBe('method1');
+      const ops = builder.getOperations();
+      expect(ops).toHaveLength(1);
+      expect(ops[0]?.contractId).toBe('CABC...');
+      expect(ops[0]?.method).toBe('method1');
     });
 
     it('should chain operations', () => {

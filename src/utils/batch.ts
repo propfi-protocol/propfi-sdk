@@ -32,7 +32,7 @@ export interface BatchConfig {
  */
 export class BatchTransactionBuilder {
   private operations: BatchOperation[] = [];
-  private config: BatchConfig;
+  private config: Required<BatchConfig>;
 
   /**
    * Create a new BatchTransactionBuilder.
@@ -181,7 +181,8 @@ export interface MultiCallConfig {
  */
 export class MultiCallClient {
   private server: SorobanRpc.Server;
-  private config: MultiCallConfig;
+  private config: Required<Pick<MultiCallConfig, 'networkPassphrase' | 'defaultFee'>> &
+    Pick<MultiCallConfig, 'rpcUrl'>;
 
   /**
    * Create a new MultiCallClient.
