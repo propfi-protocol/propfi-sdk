@@ -5,10 +5,26 @@ import {
   TransactionBuilder,
   Networks,
   scValToNative,
+  type xdr,
 } from '@stellar/stellar-sdk';
 import type { TxOptions } from '../types';
-import type { xdr, Transaction } from '@stellar/stellar-sdk';
+import type { Transaction } from '@stellar/stellar-sdk';
 import { SimulationError, TransactionError, ContractError } from '../errors';
+import { parseContractEvents, type ParsedEvent } from '../utils/events';
+
+/** Minimal interface for transaction status response */
+interface TxStatusResponse {
+  status: string;
+  hash: string;
+  errorResult?: xdr.TransactionResult;
+  events?: xdr.DiagnosticEvent[];
+}
+
+/** Interface for diagnostic event that can be parsed */
+interface DiagnosticEventLike {
+  topics(): xdr.ScVal[];
+  data(): xdr.ScVal;
+}
 
 /**
  * Interface for transaction signers.
@@ -26,6 +42,18 @@ export interface SorobanSigner {
    * @returns Public key (Stellar address)
    */
   getPublicKey(): Promise<string>;
+}
+
+/**
+ * Result of a transaction execution with parsed events.
+ */
+export interface TransactionResult {
+  /** Transaction hash */
+  hash: string;
+  /** Parsed events from the transaction */
+  events: ParsedEvent[];
+  /** Raw transaction response */
+  response: SorobanRpc.Api.SendTransactionResponse;
 }
 
 /**
@@ -134,6 +162,26 @@ export class SorobanClient {
     signer: SorobanSigner,
     options?: TxOptions
   ): Promise<string> {
+    const result = await this.signAndSendWithEvents(method, params, signer, options);
+    return result.hash;
+  }
+
+  /**
+   * Prepare, sign, and send a transaction with event parsing.
+   * @param method - Contract method to call
+   * @param params - Method parameters as XDR ScVal array
+   * @param signer - Signer to sign the transaction
+   * @param options - Transaction options
+   * @returns Transaction result with hash and parsed events
+   * @throws TransactionError if transaction fails
+   * @throws SignerError if signing fails
+   */
+  async signAndSendWithEvents(
+    method: string,
+    params: xdr.ScVal[],
+    signer: SorobanSigner,
+    options?: TxOptions
+  ): Promise<TransactionResult> {
     const source = await signer.getPublicKey();
     const prepared = await this.prepareTransaction(method, params, source, options);
     const txXdr = prepared.toXDR();
@@ -153,6 +201,7 @@ export class SorobanClient {
     const signedTx = TransactionBuilder.fromXDR(signedXdr, this.networkPassphrase) as Transaction;
     const resp = await this.server.sendTransaction(signedTx);
 
+    // SendTransactionResponse has status: 'PENDING' | 'ERROR'
     if (resp.status === 'ERROR') {
       throw new TransactionError(
         `Transaction failed for ${method}: ${resp.errorResult ? resp.errorResult.toXDR('base64') : 'unknown'}`,
@@ -161,7 +210,106 @@ export class SorobanClient {
       );
     }
 
-    return resp.hash;
+    // Wait for transaction to be confirmed and get events
+    const txStatus = await this.waitForTransaction(resp.hash);
+
+    if (txStatus.status === 'FAILED') {
+      throw new TransactionError(
+        `Transaction failed for ${method}: ${txStatus.errorResult ? txStatus.errorResult.toXDR('base64') : 'unknown'}`,
+        txStatus.hash,
+        txStatus.errorResult ? txStatus.errorResult.toXDR('base64') : undefined
+      );
+    }
+
+    const events = parseContractEvents(this.toDiagnosticEventLike(txStatus.events ?? []));
+
+    return {
+      hash: resp.hash,
+      events,
+      response: resp,
+    };
+  }
+
+  /**
+   * Wait for a transaction to be confirmed and return its status.
+   * @param hash - Transaction hash
+   * @param maxRetries - Maximum number of polling retries (default: 30)
+   * @param retryIntervalMs - Interval between retries in ms (default: 2000)
+   * @returns Transaction status response
+   * @throws TransactionError if transaction fails or times out
+   */
+  async waitForTransaction(
+    hash: string,
+    maxRetries = 30,
+    retryIntervalMs = 2000
+  ): Promise<TxStatusResponse> {
+    for (let i = 0; i < maxRetries; i++) {
+      const status = await this.server.getTransaction(hash);
+
+      // Status can be: NOT_FOUND, SUCCESS, FAILED
+      const statusStr = status.status;
+
+      if (statusStr === 'SUCCESS') {
+        const successStatus = status as SorobanRpc.Api.GetSuccessfulTransactionResponse;
+        return {
+          status: 'SUCCESS',
+          hash,
+          events: successStatus.diagnosticEventsXdr ?? [],
+        };
+      }
+
+      if (statusStr === 'FAILED') {
+        const failedStatus = status as SorobanRpc.Api.GetFailedTransactionResponse;
+        return {
+          status: 'FAILED',
+          hash,
+          errorResult: failedStatus.resultXdr as unknown as xdr.TransactionResult,
+        };
+      }
+
+      if (statusStr !== 'NOT_FOUND') {
+        return {
+          status: statusStr,
+          hash,
+        };
+      }
+
+      await new Promise(resolve => setTimeout(resolve, retryIntervalMs));
+    }
+
+    throw new TransactionError(`Transaction confirmation timed out`, hash);
+  }
+
+  /**
+   * Convert DiagnosticEvent array to DiagnosticEventLike array for parsing.
+   * @param events - Diagnostic events
+   * @returns DiagnosticEventLike array
+   */
+  private toDiagnosticEventLike(events: xdr.DiagnosticEvent[]): DiagnosticEventLike[] {
+    return events.map(event => ({
+      topics: () => (event as any).topics(),
+      data: () => (event as any).data(),
+    }));
+  }
+
+  /**
+   * Find a specific event in the transaction events by topic.
+   * @param events - Parsed events from transaction
+   * @param topic - Event topic to search for
+   * @returns Matching event or undefined
+   */
+  static findEvent(events: ParsedEvent[], topic: string): ParsedEvent | undefined {
+    return events.find(event => event.topics[0] === topic);
+  }
+
+  /**
+   * Find all events matching a topic.
+   * @param events - Parsed events from transaction
+   * @param topic - Event topic to search for
+   * @returns Array of matching events
+   */
+  static findEvents(events: ParsedEvent[], topic: string): ParsedEvent[] {
+    return events.filter(event => event.topics[0] === topic);
   }
 
   /**

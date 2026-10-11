@@ -1,5 +1,5 @@
 import { nativeToScVal } from '@stellar/stellar-sdk';
-import { SorobanClient, type SorobanSigner } from './base';
+import { SorobanClient, type SorobanSigner, type TransactionResult } from './base';
 import type { PropertyData, PropertyStatus, TxOptions } from '../types';
 import {
   validateAccountId,
@@ -8,6 +8,7 @@ import {
   validateRequired,
   assertValid,
 } from '../utils/validation';
+import { EventTopics } from '../utils/events';
 
 /**
  * Client for interacting with the PropertyRegistry contract.
@@ -42,6 +43,28 @@ export class PropertyRegistryClient extends SorobanClient {
   }
 
   /**
+   * Initialize the property registry with an admin and return parsed events.
+   * @param admin - Admin account address
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction result with hash and parsed events
+   */
+  async initializeWithEvents(
+    admin: string,
+    signer: SorobanSigner,
+    options?: TxOptions
+  ): Promise<TransactionResult> {
+    assertValid(validateRequired(admin, 'admin'));
+    assertValid(validateAccountId(admin, 'admin'));
+    return this.signAndSendWithEvents(
+      'initialize',
+      [nativeToScVal(admin, { type: 'address' })],
+      signer,
+      options
+    );
+  }
+
+  /**
    * Register a new property in the registry.
    * @param owner - Property owner address
    * @param valuation - Initial property valuation in base units
@@ -66,6 +89,43 @@ export class PropertyRegistryClient extends SorobanClient {
     assertValid(validateRequired(docHash, 'docHash'));
     assertValid(validateRequired(jurisdiction, 'jurisdiction'));
     return this.signAndSend(
+      'register_property',
+      [
+        nativeToScVal(owner, { type: 'address' }),
+        nativeToScVal(valuation, { type: 'i128' }),
+        nativeToScVal(docHash, { type: 'bytes' }),
+        nativeToScVal(jurisdiction, { type: 'symbol' }),
+      ],
+      signer,
+      options
+    );
+  }
+
+  /**
+   * Register a new property and return parsed events.
+   * @param owner - Property owner address
+   * @param valuation - Initial property valuation in base units
+   * @param docHash - Hash of property documentation
+   * @param jurisdiction - Legal jurisdiction symbol
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction result with hash and parsed events
+   */
+  async registerPropertyWithEvents(
+    owner: string,
+    valuation: bigint,
+    docHash: string,
+    jurisdiction: string,
+    signer: SorobanSigner,
+    options?: TxOptions
+  ): Promise<TransactionResult> {
+    assertValid(validateRequired(owner, 'owner'));
+    assertValid(validateAccountId(owner, 'owner'));
+    assertValid(validateRequired(valuation, 'valuation'));
+    assertValid(validatePositiveBigInt(valuation, 'valuation'));
+    assertValid(validateRequired(docHash, 'docHash'));
+    assertValid(validateRequired(jurisdiction, 'jurisdiction'));
+    return this.signAndSendWithEvents(
       'register_property',
       [
         nativeToScVal(owner, { type: 'address' }),
@@ -149,6 +209,39 @@ export class PropertyRegistryClient extends SorobanClient {
   }
 
   /**
+   * Transfer ownership of a property and return parsed events.
+   * @param propId - Property ID
+   * @param to - New owner address
+   * @param complianceContract - Compliance registry contract address
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction result with hash and parsed events
+   */
+  async transferOwnershipWithEvents(
+    propId: number,
+    to: string,
+    complianceContract: string,
+    signer: SorobanSigner,
+    options?: TxOptions
+  ): Promise<TransactionResult> {
+    assertValid(validateRequired(propId, 'propId'));
+    assertValid(validateRequired(to, 'to'));
+    assertValid(validateAccountId(to, 'to'));
+    assertValid(validateRequired(complianceContract, 'complianceContract'));
+    assertValid(validateContractId(complianceContract, 'complianceContract'));
+    return this.signAndSendWithEvents(
+      'transfer_ownership',
+      [
+        nativeToScVal(propId, { type: 'u64' }),
+        nativeToScVal(to, { type: 'address' }),
+        nativeToScVal(complianceContract, { type: 'address' }),
+      ],
+      signer,
+      options
+    );
+  }
+
+  /**
    * Get property data by ID.
    * @param propId - Property ID
    * @returns Property data
@@ -186,6 +279,30 @@ export class PropertyRegistryClient extends SorobanClient {
   }
 
   /**
+   * Set the status of a property and return parsed events.
+   * @param propId - Property ID
+   * @param status - New property status
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction result with hash and parsed events
+   */
+  async setStatusWithEvents(
+    propId: number,
+    status: PropertyStatus,
+    signer: SorobanSigner,
+    options?: TxOptions
+  ): Promise<TransactionResult> {
+    assertValid(validateRequired(propId, 'propId'));
+    assertValid(validateRequired(status, 'status'));
+    return this.signAndSendWithEvents(
+      'set_status',
+      [nativeToScVal(propId, { type: 'u64' }), nativeToScVal(status, { type: 'symbol' })],
+      signer,
+      options
+    );
+  }
+
+  /**
    * Get the jurisdiction of a property.
    * @param propId - Property ID
    * @returns Jurisdiction symbol
@@ -196,5 +313,45 @@ export class PropertyRegistryClient extends SorobanClient {
       nativeToScVal(propId, { type: 'u64' }),
     ]);
     return result as string;
+  }
+
+  /**
+   * Extract the PropertyRegistered event from transaction events.
+   * @param events - Transaction events
+   * @returns PropertyRegistered event data or undefined
+   */
+  static getPropertyRegisteredEvent(events: TransactionResult['events']): any {
+    const event = SorobanClient.findEvent(events, EventTopics.PROPERTY_REGISTERED);
+    return event?.data;
+  }
+
+  /**
+   * Extract the PropertyTransferred event from transaction events.
+   * @param events - Transaction events
+   * @returns PropertyTransferred event data or undefined
+   */
+  static getPropertyTransferredEvent(events: TransactionResult['events']): any {
+    const event = SorobanClient.findEvent(events, EventTopics.PROPERTY_TRANSFERRED);
+    return event?.data;
+  }
+
+  /**
+   * Extract the PropertyStatusChanged event from transaction events.
+   * @param events - Transaction events
+   * @returns PropertyStatusChanged event data or undefined
+   */
+  static getPropertyStatusChangedEvent(events: TransactionResult['events']): any {
+    const event = SorobanClient.findEvent(events, EventTopics.PROPERTY_STATUS_CHANGED);
+    return event?.data;
+  }
+
+  /**
+   * Extract the ValuationUpdated event from transaction events.
+   * @param events - Transaction events
+   * @returns ValuationUpdated event data or undefined
+   */
+  static getValuationUpdatedEvent(events: TransactionResult['events']): any {
+    const event = SorobanClient.findEvent(events, EventTopics.VALUATION_UPDATED);
+    return event?.data;
   }
 }

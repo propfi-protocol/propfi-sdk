@@ -11,6 +11,7 @@ export {
   FractionVaultClient,
   MortgagePoolClient,
   type SorobanSigner,
+  type TransactionResult,
 } from './clients';
 
 /**

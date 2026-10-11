@@ -105,6 +105,11 @@ describe('SorobanClient', () => {
       const mockPreparedTx = { toXDR: vi.fn().mockReturnValue('prepared-xdr') };
       mockServer.prepareTransaction.mockResolvedValue(mockPreparedTx);
       mockServer.sendTransaction.mockResolvedValue({ status: 'SUCCESS', hash: 'tx-hash-123' });
+      mockServer.getTransaction.mockResolvedValue({
+        status: 'SUCCESS',
+        hash: 'tx-hash-123',
+        diagnosticEventsXdr: [],
+      });
       (TransactionBuilder.fromXDR as any).mockReturnValue({});
 
       const mockSigner: SorobanSigner = {
