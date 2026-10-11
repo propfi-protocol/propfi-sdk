@@ -1,9 +1,6 @@
 export * from './types';
 export * from './errors';
-export * from './utils/simulation';
-export * from './utils/events';
-export * from './utils/validation';
-export * from './utils/batch';
+export * from './utils';
 export {
   SorobanClient,
   ComplianceRegistryClient,
