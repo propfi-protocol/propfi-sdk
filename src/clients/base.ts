@@ -10,23 +10,56 @@ import type { TxOptions } from '../types';
 import type { xdr, Transaction } from '@stellar/stellar-sdk';
 import { SimulationError, TransactionError, ContractError } from '../errors';
 
+/**
+ * Interface for transaction signers.
+ */
 export interface SorobanSigner {
+  /**
+   * Sign a transaction XDR.
+   * @param txXdr - Transaction XDR to sign
+   * @returns Signed transaction XDR
+   */
   signTransaction(txXdr: string): Promise<string>;
+
+  /**
+   * Get the public key of the signer.
+   * @returns Public key (Stellar address)
+   */
   getPublicKey(): Promise<string>;
 }
 
+/**
+ * Base client for interacting with Soroban smart contracts.
+ */
 export class SorobanClient {
+  /** Soroban RPC server instance */
   protected server: SorobanRpc.Server;
+  /** Contract instance */
   protected contract: Contract;
+  /** Network passphrase */
   protected networkPassphrase: string;
+  /** Dummy address for view simulations */
   private static readonly DUMMY_ADDRESS = 'GBZC6Y2Y7Q3ZQ2Y4QZJ2XZ3Z5YXZ6Z7Z2Y4QZJ2XZ3Z5YXZ6Z7Z2Y4';
 
+  /**
+   * Create a new SorobanClient.
+   * @param rpcUrl - RPC endpoint URL
+   * @param contractId - Contract ID to interact with
+   * @param networkPassphrase - Network passphrase (default: PUBLIC)
+   */
   constructor(rpcUrl: string, contractId: string, networkPassphrase?: string) {
     this.server = new SorobanRpc.Server(rpcUrl);
     this.contract = new Contract(contractId);
     this.networkPassphrase = networkPassphrase ?? Networks.PUBLIC;
   }
 
+  /**
+   * Simulate a view (read-only) contract call.
+   * @param method - Contract method to call
+   * @param params - Method parameters as XDR ScVal array
+   * @returns Decoded simulation result
+   * @throws SimulationError if simulation fails
+   */
   async simulateView(method: string, params: xdr.ScVal[]): Promise<any> {
     const tx = new TransactionBuilder(new Account(SorobanClient.DUMMY_ADDRESS, '0'), {
       fee: '100',
@@ -49,6 +82,15 @@ export class SorobanClient {
     return scValToNative(result.result.retval);
   }
 
+  /**
+   * Prepare a transaction for signing.
+   * @param method - Contract method to call
+   * @param params - Method parameters as XDR ScVal array
+   * @param source - Source account address
+   * @param options - Transaction options
+   * @returns Prepared transaction
+   * @throws ContractError if preparation fails
+   */
   async prepareTransaction(
     method: string,
     params: xdr.ScVal[],
@@ -76,6 +118,16 @@ export class SorobanClient {
     }
   }
 
+  /**
+   * Prepare, sign, and send a transaction.
+   * @param method - Contract method to call
+   * @param params - Method parameters as XDR ScVal array
+   * @param signer - Signer to sign the transaction
+   * @param options - Transaction options
+   * @returns Transaction hash
+   * @throws TransactionError if transaction fails
+   * @throws SignerError if signing fails
+   */
   async signAndSend(
     method: string,
     params: xdr.ScVal[],
@@ -112,6 +164,12 @@ export class SorobanClient {
     return resp.hash;
   }
 
+  /**
+   * Get the status of a transaction by hash.
+   * @param hash - Transaction hash
+   * @returns Transaction status response
+   * @throws ContractError if lookup fails
+   */
   async getTransactionStatus(hash: string): Promise<SorobanRpc.Api.GetTransactionResponse> {
     try {
       return this.server.getTransaction(hash);

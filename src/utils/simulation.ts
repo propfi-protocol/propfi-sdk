@@ -3,28 +3,60 @@ import type { TxOptions } from '../types';
 import type { xdr } from '@stellar/stellar-sdk';
 import { SimulationError } from '../errors';
 
+/**
+ * Result of a transaction simulation.
+ */
 export interface SimulationResult {
+  /** Decoded simulation result */
   result: any;
+  /** Events emitted during simulation */
   events: xdr.DiagnosticEvent[];
+  /** Latest ledger sequence at time of simulation */
   latestLedger: number;
+  /** Minimum resource fee required */
   minResourceFee: bigint;
+  /** Estimated fee for transaction execution */
   estimatedFee: bigint;
 }
 
+/**
+ * Fee estimation breakdown.
+ */
 export interface FeeEstimate {
+  /** Minimum fee required */
   minFee: bigint;
+  /** Recommended fee for reliable execution */
   recommendedFee: bigint;
+  /** Maximum fee for high-priority execution */
   maxFee: bigint;
+  /** Resource fee component */
   resourceFee: bigint;
 }
 
+/**
+ * Transaction simulator for estimating fees and testing contract calls.
+ */
 export class TransactionSimulator {
+  /**
+   * Create a new TransactionSimulator.
+   * @param server - Soroban RPC server instance
+   * @param contractId - Contract ID to simulate calls for
+   * @param networkPassphrase - Network passphrase (default: PUBLIC)
+   */
   constructor(
     protected server: SorobanRpc.Server,
     protected contractId: string,
     protected networkPassphrase: string
   ) {}
 
+  /**
+   * Simulate a contract call with a source account.
+   * @param method - Contract method to call
+   * @param params - Method parameters as XDR ScVal array
+   * @param source - Source account address
+   * @param options - Transaction options
+   * @returns Simulation result with fee estimates
+   */
   async simulate(
     method: string,
     params: xdr.ScVal[],
@@ -62,6 +94,12 @@ export class TransactionSimulator {
     };
   }
 
+  /**
+   * Simulate a view (read-only) contract call without a source account.
+   * @param method - Contract method to call
+   * @param params - Method parameters as XDR ScVal array
+   * @returns Simulation result
+   */
   async simulateView(method: string, params: xdr.ScVal[]): Promise<SimulationResult> {
     const tx = new TransactionBuilder(
       new (await import('@stellar/stellar-sdk')).Account(
@@ -99,12 +137,22 @@ export class TransactionSimulator {
     };
   }
 
+  /**
+   * Estimate transaction fee based on resource fee.
+   * @param minResourceFee - Minimum resource fee from simulation
+   * @returns Estimated fee
+   */
   estimateFee(minResourceFee: bigint): bigint {
     const baseFee = 100n;
     const resourceFee = minResourceFee > 0n ? minResourceFee : baseFee * 10n;
     return resourceFee + baseFee;
   }
 
+  /**
+   * Get a detailed fee estimate.
+   * @param minResourceFee - Minimum resource fee from simulation
+   * @returns Fee estimate breakdown
+   */
   getFeeEstimate(minResourceFee: bigint): FeeEstimate {
     const resourceFee = minResourceFee > 0n ? minResourceFee : 1000n;
     return {
@@ -115,6 +163,14 @@ export class TransactionSimulator {
     };
   }
 
+  /**
+   * Prepare a transaction and simulate it in one call.
+   * @param method - Contract method to call
+   * @param params - Method parameters as XDR ScVal array
+   * @param source - Source account address
+   * @param options - Transaction options
+   * @returns Prepared transaction and simulation result
+   */
   async prepareAndSimulate(
     method: string,
     params: xdr.ScVal[],
@@ -138,6 +194,13 @@ export class TransactionSimulator {
   }
 }
 
+/**
+ * Factory function to create a TransactionSimulator.
+ * @param rpcUrl - RPC endpoint URL
+ * @param contractId - Contract ID to simulate
+ * @param networkPassphrase - Network passphrase (default: PUBLIC)
+ * @returns TransactionSimulator instance
+ */
 export function createTransactionSimulator(
   rpcUrl: string,
   contractId: string,

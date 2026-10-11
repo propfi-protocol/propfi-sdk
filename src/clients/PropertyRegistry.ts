@@ -9,11 +9,27 @@ import {
   assertValid,
 } from '../utils/validation';
 
+/**
+ * Client for interacting with the PropertyRegistry contract.
+ * Manages property registration, ownership, valuations, and status.
+ */
 export class PropertyRegistryClient extends SorobanClient {
+  /**
+   * Create a new PropertyRegistryClient.
+   * @param rpcUrl - RPC endpoint URL
+   * @param contractId - PropertyRegistry contract ID
+   */
   constructor(rpcUrl: string, contractId: string) {
     super(rpcUrl, contractId);
   }
 
+  /**
+   * Initialize the property registry with an admin.
+   * @param admin - Admin account address
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction hash
+   */
   async initialize(admin: string, signer: SorobanSigner, options?: TxOptions): Promise<string> {
     assertValid(validateRequired(admin, 'admin'));
     assertValid(validateAccountId(admin, 'admin'));
@@ -25,6 +41,16 @@ export class PropertyRegistryClient extends SorobanClient {
     );
   }
 
+  /**
+   * Register a new property in the registry.
+   * @param owner - Property owner address
+   * @param valuation - Initial property valuation in base units
+   * @param docHash - Hash of property documentation
+   * @param jurisdiction - Legal jurisdiction symbol
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction hash
+   */
   async registerProperty(
     owner: string,
     valuation: bigint,
@@ -52,6 +78,16 @@ export class PropertyRegistryClient extends SorobanClient {
     );
   }
 
+  /**
+   * Update the valuation of a property.
+   * @param propId - Property ID
+   * @param newVal - New valuation in base units
+   * @param oracleContract - Oracle contract address
+   * @param asset - Asset symbol for the valuation
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction hash
+   */
   async updateValuation(
     propId: number,
     newVal: bigint,
@@ -79,6 +115,15 @@ export class PropertyRegistryClient extends SorobanClient {
     );
   }
 
+  /**
+   * Transfer ownership of a property.
+   * @param propId - Property ID
+   * @param to - New owner address
+   * @param complianceContract - Compliance registry contract address
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction hash
+   */
   async transferOwnership(
     propId: number,
     to: string,
@@ -103,6 +148,11 @@ export class PropertyRegistryClient extends SorobanClient {
     );
   }
 
+  /**
+   * Get property data by ID.
+   * @param propId - Property ID
+   * @returns Property data
+   */
   async getProperty(propId: number): Promise<PropertyData> {
     assertValid(validateRequired(propId, 'propId'));
     const result = await this.simulateView('get_property', [
@@ -111,6 +161,14 @@ export class PropertyRegistryClient extends SorobanClient {
     return result as PropertyData;
   }
 
+  /**
+   * Set the status of a property.
+   * @param propId - Property ID
+   * @param status - New property status
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction hash
+   */
   async setStatus(
     propId: number,
     status: PropertyStatus,
@@ -127,6 +185,11 @@ export class PropertyRegistryClient extends SorobanClient {
     );
   }
 
+  /**
+   * Get the jurisdiction of a property.
+   * @param propId - Property ID
+   * @returns Jurisdiction symbol
+   */
   async getPropertyJurisdiction(propId: number): Promise<string> {
     assertValid(validateRequired(propId, 'propId'));
     const result = await this.simulateView('get_property_jurisdiction', [

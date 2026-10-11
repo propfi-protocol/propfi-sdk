@@ -8,11 +8,27 @@ import {
   assertValid,
 } from '../utils/validation';
 
+/**
+ * Client for interacting with the ComplianceRegistry contract.
+ * Manages user attestations, compliance checks, and jurisdiction rules.
+ */
 export class ComplianceRegistryClient extends SorobanClient {
+  /**
+   * Create a new ComplianceRegistryClient.
+   * @param rpcUrl - RPC endpoint URL
+   * @param contractId - ComplianceRegistry contract ID
+   */
   constructor(rpcUrl: string, contractId: string) {
     super(rpcUrl, contractId);
   }
 
+  /**
+   * Initialize the compliance registry with an admin.
+   * @param admin - Admin account address
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction hash
+   */
   async initialize(admin: string, signer: SorobanSigner, options?: TxOptions): Promise<string> {
     assertValid(validateRequired(admin, 'admin'));
     assertValid(validateAccountId(admin, 'admin'));
@@ -24,6 +40,16 @@ export class ComplianceRegistryClient extends SorobanClient {
     );
   }
 
+  /**
+   * Create an attestation for a user in a jurisdiction.
+   * @param user - User account address
+   * @param proofHash - Hash of the compliance proof document
+   * @param jurisdiction - Jurisdiction symbol
+   * @param durationDays - Attestation validity in days (1-3650)
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction hash
+   */
   async attest(
     user: string,
     proofHash: string,
@@ -51,6 +77,12 @@ export class ComplianceRegistryClient extends SorobanClient {
     );
   }
 
+  /**
+   * Check if a user is compliant in a jurisdiction.
+   * @param user - User account address
+   * @param jurisdiction - Jurisdiction symbol
+   * @returns True if user is compliant
+   */
   async isCompliant(user: string, jurisdiction: string): Promise<boolean> {
     assertValid(validateRequired(user, 'user'));
     assertValid(validateAccountId(user, 'user'));
@@ -62,12 +94,27 @@ export class ComplianceRegistryClient extends SorobanClient {
     return result as boolean;
   }
 
+  /**
+   * Revoke a user's attestation.
+   * @param user - User account address
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction hash
+   */
   async revoke(user: string, signer: SorobanSigner, options?: TxOptions): Promise<string> {
     assertValid(validateRequired(user, 'user'));
     assertValid(validateAccountId(user, 'user'));
     return this.signAndSend('revoke', [nativeToScVal(user, { type: 'address' })], signer, options);
   }
 
+  /**
+   * Set jurisdiction-specific compliance rules.
+   * @param jurisdiction - Jurisdiction symbol
+   * @param rules - Jurisdiction rules
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction hash
+   */
   async setJurisdictionRules(
     jurisdiction: string,
     rules: JurisdictionRules,
@@ -94,6 +141,11 @@ export class ComplianceRegistryClient extends SorobanClient {
     );
   }
 
+  /**
+   * Get the attestation expiry timestamp for a user.
+   * @param user - User account address
+   * @returns Unix timestamp of attestation expiry
+   */
   async attestationExpiry(user: string): Promise<bigint> {
     assertValid(validateRequired(user, 'user'));
     assertValid(validateAccountId(user, 'user'));

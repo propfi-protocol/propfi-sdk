@@ -1,13 +1,27 @@
 import { ValidationError } from '../errors';
 
+/** Regex pattern for validating Stellar addresses (both G... and C... formats) */
 export const STELLAR_ADDRESS_REGEX = /^[GC][A-Z0-9]{55}$/;
 
+/**
+ * Result of a validation check.
+ * @template T - The validated value type
+ */
 export interface ValidationResult<T> {
+  /** Whether validation passed */
   valid: boolean;
+  /** The validated value (if valid) */
   value?: T;
+  /** The validation error (if invalid) */
   error?: ValidationError;
 }
 
+/**
+ * Validate a Stellar address (account or contract).
+ * @param address - Address to validate
+ * @param fieldName - Field name for error messages
+ * @returns ValidationResult with the validated address or error
+ */
 export function validateStellarAddress(
   address: string,
   fieldName = 'address'
@@ -37,6 +51,12 @@ export function validateStellarAddress(
   return { valid: true, value: address };
 }
 
+/**
+ * Validate a contract ID (must start with 'C').
+ * @param contractId - Contract ID to validate
+ * @param fieldName - Field name for error messages
+ * @returns ValidationResult with the validated contract ID or error
+ */
 export function validateContractId(
   contractId: string,
   fieldName = 'contractId'
@@ -60,6 +80,12 @@ export function validateContractId(
   return { valid: true, value: contractId };
 }
 
+/**
+ * Validate an account ID (must start with 'G').
+ * @param accountId - Account ID to validate
+ * @param fieldName - Field name for error messages
+ * @returns ValidationResult with the validated account ID or error
+ */
 export function validateAccountId(
   accountId: string,
   fieldName = 'accountId'
@@ -83,6 +109,12 @@ export function validateAccountId(
   return { valid: true, value: accountId };
 }
 
+/**
+ * Validate that a bigint is positive (> 0).
+ * @param value - Value to validate
+ * @param fieldName - Field name for error messages
+ * @returns ValidationResult with the validated value or error
+ */
 export function validatePositiveBigInt(value: bigint, fieldName: string): ValidationResult<bigint> {
   if (value <= 0n) {
     return {
@@ -97,6 +129,12 @@ export function validatePositiveBigInt(value: bigint, fieldName: string): Valida
   return { valid: true, value };
 }
 
+/**
+ * Validate that a bigint is non-negative (>= 0).
+ * @param value - Value to validate
+ * @param fieldName - Field name for error messages
+ * @returns ValidationResult with the validated value or error
+ */
 export function validateNonNegativeBigInt(
   value: bigint,
   fieldName: string
@@ -114,6 +152,14 @@ export function validateNonNegativeBigInt(
   return { valid: true, value };
 }
 
+/**
+ * Validate that a number is within a range.
+ * @param value - Value to validate
+ * @param min - Minimum allowed value (inclusive)
+ * @param max - Maximum allowed value (inclusive)
+ * @param fieldName - Field name for error messages
+ * @returns ValidationResult with the validated value or error
+ */
 export function validateNumberRange(
   value: number,
   min: number,
@@ -133,6 +179,14 @@ export function validateNumberRange(
   return { valid: true, value };
 }
 
+/**
+ * Validate that a string length is within a range.
+ * @param value - String to validate
+ * @param minLength - Minimum allowed length (inclusive)
+ * @param maxLength - Maximum allowed length (inclusive)
+ * @param fieldName - Field name for error messages
+ * @returns ValidationResult with the validated value or error
+ */
 export function validateStringLength(
   value: string,
   minLength: number,
@@ -152,6 +206,13 @@ export function validateStringLength(
   return { valid: true, value };
 }
 
+/**
+ * Validate that a value is not null or undefined.
+ * @template T - The value type
+ * @param value - Value to validate
+ * @param fieldName - Field name for error messages
+ * @returns ValidationResult with the validated value or error
+ */
 export function validateRequired<T>(
   value: T | null | undefined,
   fieldName: string
@@ -165,6 +226,13 @@ export function validateRequired<T>(
   return { valid: true, value };
 }
 
+/**
+ * Assert that a validation result is valid, throwing if not.
+ * @template T - The validated value type
+ * @param result - Validation result to assert
+ * @returns The validated value
+ * @throws ValidationError if validation failed
+ */
 export function assertValid<T>(result: ValidationResult<T>): T {
   if (!result.valid) {
     throw result.error!;
@@ -172,6 +240,13 @@ export function assertValid<T>(result: ValidationResult<T>): T {
   return result.value!;
 }
 
+/**
+ * Validate multiple fields on an object at once.
+ * @template T - The object type
+ * @param obj - Object to validate
+ * @param validators - Map of field names to validator functions
+ * @returns ValidationResult with the validated object or combined error
+ */
 export function validateAll<T extends Record<string, unknown>>(
   obj: T,
   validators: Record<keyof T, (value: unknown) => ValidationResult<unknown>>
@@ -202,6 +277,10 @@ export function validateAll<T extends Record<string, unknown>>(
   return { valid: true, value: validated as T };
 }
 
+/**
+ * Create a set of validators for common SDK configuration fields.
+ * @returns Object with validator functions for rpcUrl, contractId, accountId, positiveAmount, nonNegativeAmount
+ */
 export function createConfigValidator() {
   return {
     rpcUrl: (value: unknown) =>

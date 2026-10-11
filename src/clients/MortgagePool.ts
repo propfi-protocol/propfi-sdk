@@ -9,11 +9,30 @@ import {
   assertValid,
 } from '../utils/validation';
 
+/**
+ * Client for interacting with the MortgagePool contract.
+ * Manages lending, borrowing, liquidity provision, and loan health.
+ */
 export class MortgagePoolClient extends SorobanClient {
+  /**
+   * Create a new MortgagePoolClient.
+   * @param rpcUrl - RPC endpoint URL
+   * @param contractId - MortgagePool contract ID
+   */
   constructor(rpcUrl: string, contractId: string) {
     super(rpcUrl, contractId);
   }
 
+  /**
+   * Initialize the mortgage pool.
+   * @param admin - Admin account address
+   * @param token - Lending token contract address
+   * @param propertyReg - Property registry contract address
+   * @param oracle - Oracle contract address
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction hash
+   */
   async initialize(
     admin: string,
     token: string,
@@ -43,6 +62,15 @@ export class MortgagePoolClient extends SorobanClient {
     );
   }
 
+  /**
+   * Open a new loan against a property.
+   * @param borrower - Borrower account address
+   * @param propId - Property ID to use as collateral
+   * @param amount - Loan amount in base units
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction hash
+   */
   async openLoan(
     borrower: string,
     propId: number,
@@ -67,6 +95,15 @@ export class MortgagePoolClient extends SorobanClient {
     );
   }
 
+  /**
+   * Repay a loan.
+   * @param borrower - Borrower account address
+   * @param loanId - Loan ID to repay
+   * @param amount - Repayment amount in base units
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction hash
+   */
   async repay(
     borrower: string,
     loanId: number,
@@ -91,6 +128,14 @@ export class MortgagePoolClient extends SorobanClient {
     );
   }
 
+  /**
+   * Liquidate an undercollateralized loan.
+   * @param liquidator - Liquidator account address
+   * @param loanId - Loan ID to liquidate
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction hash
+   */
   async liquidate(
     liquidator: string,
     loanId: number,
@@ -108,6 +153,14 @@ export class MortgagePoolClient extends SorobanClient {
     );
   }
 
+  /**
+   * Deposit liquidity into the pool.
+   * @param lp - Liquidity provider account address
+   * @param amount - Amount to deposit in base units
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction hash
+   */
   async depositLiquidity(
     lp: string,
     amount: bigint,
@@ -126,6 +179,14 @@ export class MortgagePoolClient extends SorobanClient {
     );
   }
 
+  /**
+   * Withdraw liquidity from the pool.
+   * @param lp - Liquidity provider account address
+   * @param amount - Amount to withdraw in base units
+   * @param signer - Signer to authorize the transaction
+   * @param options - Transaction options
+   * @returns Transaction hash
+   */
   async withdrawLiquidity(
     lp: string,
     amount: bigint,
@@ -144,6 +205,11 @@ export class MortgagePoolClient extends SorobanClient {
     );
   }
 
+  /**
+   * Get the health factor of a loan.
+   * @param loanId - Loan ID
+   * @returns Health factor with ratio and health status
+   */
   async loanHealth(loanId: number): Promise<HealthFactor> {
     assertValid(validateRequired(loanId, 'loanId'));
     const result = await this.simulateView('loan_health', [nativeToScVal(loanId, { type: 'u64' })]);
